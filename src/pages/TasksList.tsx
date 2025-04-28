@@ -4,20 +4,16 @@ import TaskCard from '../components/tasks/TaskCards';
 import { TaskStatus } from '../types';
 
 const TasksList: React.FC = () => {
-    const { tasks, loading, error, loadUserTasks } = useTasks();
+    const { tasks, loading, error } = useTasks();
     const [filter, setFilter] = useState<string>('all');
-    
-    useEffect(() => {
-        loadUserTasks();
-    }, []);
 
-  const filteredTasks = tasks.filter((task) => {
-    if (filter === 'all') return true;
-    if (filter === 'to-do') return task.status === TaskStatus.TODO;
-    if (filter === 'in-progress') return task.status === TaskStatus.IN_PROGRESS;
-    if (filter === 'completed') return task.status === TaskStatus.COMPLETED;
-    return false;
-  });
+    const filteredTasks = tasks.filter(task => {
+        if (filter === 'all') return true;
+        if (filter === 'to-do') return task.status === TaskStatus.TODO;
+        if (filter === 'in-progress') return task.status === TaskStatus.IN_PROGRESS;
+        if (filter === 'completed') return task.status === TaskStatus.COMPLETED;
+        return false;
+    });
 
   if (loading) {
     return <div className="text-center py-10">Loading tasks...</div>;
