@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import { Task, TaskStatus, UserRole } from '../types';
-import { api } from '../services/api';
+import { useTasks } from '../contexts/TasksContext';
+import { UserRole } from '../types';
 import TaskCard from '../components/tasks/TaskCards';
 
 const TeamTasksPage: React.FC = () => {
@@ -10,6 +10,8 @@ const TeamTasksPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  const { tasks, loading, error, loadTeamTasks } = useTasks();
+  
   useEffect(() => {
     const loadPendingTasks = async () => {
       if (!currentUser) return;
@@ -32,7 +34,7 @@ const TeamTasksPage: React.FC = () => {
     };
 
     if (currentUser && currentUser.role === UserRole.TEAM_LEAD) {
-      loadPendingTasks();
+      loadTeamTasks();
     }
   }, [currentUser]);
 
@@ -46,13 +48,16 @@ const TeamTasksPage: React.FC = () => {
   }
 
   if (loading) {
-    return <div className="text-center py-10">Loading to do tasks...</div>;
+    return <div className="text-center py-10">Loading team tasks...</div>;
   }
 
   if (error) {
     return <div className="text-center py-10 text-red-500">{error}</div>;
   }
 
+  
+  const pendingTasks = tasks.filter(task => task.status !== 'COMPLETED');
+  
   return (
     <div className="container mx-auto p-4">
       <h1 className="text-2xl font-bold mb-6">Team tasks to do</h1>

@@ -4,8 +4,12 @@ import TaskCard from '../components/tasks/TaskCards';
 import { TaskStatus } from '../types';
 
 const TasksList: React.FC = () => {
-  const { tasks, loading, error } = useTasks();
-  const [filter, setFilter] = useState<string>('all');
+    const { tasks, loading, error, loadUserTasks } = useTasks();
+    const [filter, setFilter] = useState<string>('all');
+    
+    useEffect(() => {
+        loadUserTasks();
+    }, []);
 
   const filteredTasks = tasks.filter((task) => {
     if (filter === 'all') return true;
