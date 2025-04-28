@@ -1,7 +1,8 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode} from 'react';
-import { Task } from '../types';
+import { Task, UserRole } from '../types';
 import { api } from '../services/api';
 import { useAuth } from './AuthContext';
+import { mockTeams } from '../mocks/data';
 
 interface TasksContextType {
     tasks: Task[];
@@ -10,6 +11,8 @@ interface TasksContextType {
     updateTask: (taskId: string, updates: Partial<Task>) => Promise<void>;
     completeTask: (taskId: string, actualHours: number) => Promise<void>;
     refreshTasks: () => Promise<void>;
+    loadUserTasks: () => Promise<void>;
+    loadTeamTasks: () => Promise<void>;
 }
 
 const TasksContext = createContext<TasksContextType>({
@@ -19,6 +22,8 @@ const TasksContext = createContext<TasksContextType>({
     updateTask: async () => {},
     completeTask: async () => {},
     refreshTasks: async () => {},
+    loadUserTasks: async () => {},
+    loadTeamTasks: async () => {},
 });
 
 export const useTasks = () => useContext(TasksContext);
@@ -29,20 +34,36 @@ export const TasksProvider: React.FC<{children: ReactNode}> = ({children}) => {
     const [error, setError] = useState<string | null>(null);
     const { currentUser } = useAuth();
 
-    const loadTasks = async () => {
+    const loadUserTasks = async () => {
         if(!currentUser) return;
         setLoading(true);
         setError(null);
         try {
-            let fetchedTasks;
-            if(currentUser.role === 'Team Leader') {
-                fetchedTasks = await api.getAllTasks();
-            } else {
-                fetchedTasks = await api.getTasksByUser(currentUser.id);
-            }
+            const fetchedTasks = await api.getTasksByUser(currentUser.id);
             setTasks(fetchedTasks);
         } catch (err) {
-            setError('Error loading tasks');
+            setError('Error loading user tasks');
+            console.error(err);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const loadTeamTasks = async () => {
+        if(!currentUser || currentUser.role !== UserRole.TEAM_LEAD) return;
+        setLoading(true);
+        setError(null);
+        try {
+            const allTasks = await api.getAllTasks();
+            const team = mockTeams.find(team => team.leaderId === currentUser.id);
+            if (team) {
+                const fetchedTasks = allTasks.filter(task => team.members.includes(task.assignedTo));
+                setTasks(fetchedTasks);
+            } else {
+                setTasks([]);
+            }
+        } catch (err) {
+            setError('Error loading team tasks');
             console.error(err);
         } finally {
             setLoading(false);
@@ -51,14 +72,14 @@ export const TasksProvider: React.FC<{children: ReactNode}> = ({children}) => {
 
     useEffect(() => {
         if (currentUser) {
-            loadTasks();
+            loadUserTasks();
         }
     }, [currentUser]);
 
     const updateTask = async (taskId: string, updates: Partial<Task>) => {
         try {
             await api.updateTask(taskId, updates);
-            await loadTasks();
+            await loadUserTasks();
         } catch (err) {
             setError('Error updating task');
             console.error(err);
@@ -68,7 +89,7 @@ export const TasksProvider: React.FC<{children: ReactNode}> = ({children}) => {
     const completeTask = async (taskId: string, actualHours: number) => {
         try {
             await api.completeTask(taskId, actualHours);
-            await loadTasks();
+            await loadUserTasks();
         } catch (err) {
             setError('Error completing task');
             console.error(err);
@@ -76,11 +97,20 @@ export const TasksProvider: React.FC<{children: ReactNode}> = ({children}) => {
     };
 
     const refreshTasks = async () => {
-        await loadTasks();
+        await loadUserTasks();
     };
 
     return (
-        <TasksContext.Provider value={{ tasks, loading, error, updateTask, completeTask, refreshTasks }}>
+        <TasksContext.Provider value={{ 
+            tasks, 
+            loading, 
+            error, 
+            updateTask, 
+            completeTask, 
+            refreshTasks,
+            loadUserTasks,
+            loadTeamTasks 
+        }}>
             {children}
         </TasksContext.Provider>
     );

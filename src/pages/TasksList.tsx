@@ -1,11 +1,15 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useTasks } from '../contexts/TasksContext';
 import TaskCard from '../components/tasks/TaskCards';
 import { TaskStatus } from '../types';
 
 const TasksList: React.FC = () => {
-    const { tasks, loading, error } = useTasks();
+    const { tasks, loading, error, loadUserTasks } = useTasks();
     const [filter, setFilter] = useState<string>('all');
+    
+    useEffect(() => {
+        loadUserTasks();
+    }, []);
 
     const filteredTasks = tasks.filter(task => {
         if (filter === 'all') return true;
