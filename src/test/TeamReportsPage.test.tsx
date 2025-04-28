@@ -79,8 +79,15 @@ describe('TeamReportsPage', () => {
     // Verify API was called
     expect(api.getAllTasks).toHaveBeenCalled();
 
-    // Check Team KPI section
-    expect(screen.getByText('Team KPI')).toBeInTheDocument();
+    // First wait for the loading state to disappear
+    await waitFor(() => {
+      expect(screen.queryByText('Loading data...')).not.toBeInTheDocument();
+    });
+
+    // Now check Team KPI section
+    await waitFor(() => {
+      expect(screen.getByText('Team KPI')).toBeInTheDocument();
+    });
 
     // Check completion rate (2 completed out of 3 total tasks = 66.7%)
     await waitFor(() => {
