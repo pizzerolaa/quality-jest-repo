@@ -12,15 +12,15 @@ import { UserRole } from '../types';
 
 const TeamLeadRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { currentUser, loading } = useAuth();
-  
+
   if (loading) {
     return <div className="text-center py-10">Loading...</div>;
   }
-  
+
   if (!currentUser || currentUser.role !== UserRole.TEAM_LEAD) {
     return <Navigate to="/dashboard" replace />;
   }
-  
+
   return <>{children}</>;
 };
 
@@ -36,20 +36,28 @@ const AppRouter: React.FC = () => {
                 <Route path="/" element={<Navigate to="/dashboard" replace />} />
                 <Route path="/dashboard" element={<Dashboard />} />
                 <Route path="/tasks" element={<TasksList />} />
-                
+
                 {/* rutas accesibles por todos */}
                 <Route path="/tasks/completed-by-sprint" element={<CompletedTasksBySprint />} />
-                
+
                 {/* rutas solo para líder de equipo */}
-                <Route 
-                  path="/team-tasks" 
-                  element={<TeamLeadRoute><TeamTasksPage /></TeamLeadRoute>} 
+                <Route
+                  path="/team-tasks"
+                  element={
+                    <TeamLeadRoute>
+                      <TeamTasksPage />
+                    </TeamLeadRoute>
+                  }
                 />
-                <Route 
-                  path="/reports" 
-                  element={<TeamLeadRoute><TeamReportsPage /></TeamLeadRoute>} 
+                <Route
+                  path="/reports"
+                  element={
+                    <TeamLeadRoute>
+                      <TeamReportsPage />
+                    </TeamLeadRoute>
+                  }
                 />
-                
+
                 {/* ruta por defecto */}
                 <Route path="*" element={<Navigate to="/dashboard" replace />} />
               </Routes>

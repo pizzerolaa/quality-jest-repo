@@ -8,6 +8,10 @@ module.exports = {
         "^.+\\.(js|jsx|ts|tsx)$": "babel-jest",
         "\\.(jpg|jpeg|png|gif|svg)$": "jest-transform-stub"
     },
+    setupFiles: [
+        "<rootDir>/src/test/setup/textEncoder.js",
+        "<rootDir>/src/test/setup/suppressWarnings.js"
+    ],
     moduleNameMapper: {
         "\\.(css|less|scss|sass)$": "jest-transform-stub"
     }
